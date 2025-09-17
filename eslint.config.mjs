@@ -18,7 +18,11 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
-      "src/graphql/**"
+      "src/graphql/**",
+      "src/generated/**",
+      "graphql/**",
+      "react/no-unescaped-entities",
+      "@next/next/no-page-custom-font"
     ],
   },
 ];
