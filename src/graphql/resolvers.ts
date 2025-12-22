@@ -7,14 +7,16 @@ const resolvers = {
       args: { filter: any },
       context: Context
     ) => {
-      const { minOpeningRank, maxclosingRank, rounds, academicProgramName, seatType, gender } =
+      const { minOpeningRank, maxclosingRank, rounds, academicProgramName, quota, seatType, gender, type } =
         args.filter;
 
       const whereClause: any = {
         round: { in: rounds },
         academicProgramName: { in: academicProgramName },
+        quota: {in: quota},
         seatType: { in: seatType },
         gender: { in: gender },
+        type: {in: type}
       };
 
       const rows = await context.prisma.josaa2025.findMany({
@@ -49,6 +51,8 @@ const resolvers = {
             closingRank: row.closingRank,
             priority: row.priority,
             rounds: [],
+            type: row.type,
+            nirf: row.nirf,
           };
         }
 
@@ -71,13 +75,12 @@ const resolvers = {
 
       // Sort the result by academicProgramName according to the input order
       result = [...rowsWithoutP, ...rowsWithP]; // Keep rows with 'p' at the end
-
-      // Sorting based on the order of `academicProgramName` from the filter
-      result.sort((a: any, b: any) => {
-        const indexA = academicProgramName.indexOf(a.academicProgramName);
-        const indexB = academicProgramName.indexOf(b.academicProgramName);
-        return indexA - indexB;
-      });
+      // // Sorting based on the order of `academicProgramName` from the filter
+      // result.sort((a: any, b: any) => {
+      //   const indexA = academicProgramName.indexOf(a.academicProgramName);
+      //   const indexB = academicProgramName.indexOf(b.academicProgramName);
+      //   return indexA - indexB;
+      // });
 
       // Return final sorted result
       return result;

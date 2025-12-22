@@ -13,6 +13,8 @@ export const GET_JOSAA_2025 = gql`
         closingRank
         priority
         rounds
+        nirf
+        type
     }
   }
 `;

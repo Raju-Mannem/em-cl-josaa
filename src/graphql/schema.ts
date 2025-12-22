@@ -11,6 +11,8 @@ const typeDefs = `#graphql
         openingRank: String
         closingRank: String
         priority: Int
+        nirf: Int
+        type: String
     }
 
     input RankFilterInput {
@@ -20,8 +22,10 @@ const typeDefs = `#graphql
         maxclosingRank: Int!
         rounds: [Int!]!
         academicProgramName: [String!]!
+        quota: [String!]!
         seatType: [String!]!
         gender: [String!]
+        type: [String!]
     }
 
     type Josaa2025Res {
@@ -35,6 +39,8 @@ const typeDefs = `#graphql
         openingRank: String
         closingRank: String
         priority: Int
+        nirf: Int
+        type: String
   }
     scalar JSON
     
