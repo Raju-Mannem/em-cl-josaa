@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Josaa2025 {
-  sno                 Decimal  @id(map: "Josaa2025_pkey") @db.Decimal
+  sno                 Decimal  @id(map: "josaa2025_pkey") @db.Decimal
   round               Decimal? @db.Decimal
   institute           String?
   academicProgramName String?
@@ -19,4 +19,16 @@ model Josaa2025 {
   openingRank         String?
   closingRank         String?
   priority            Int?
+  type                String?
+  nirf                String?
+
+  @@index([institute])
+}
+
+model all {
+  sno       Decimal? @db.Decimal
+  institute String   @id
+  type      String?
+
+  @@index([institute])
 }
