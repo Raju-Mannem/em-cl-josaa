@@ -169,9 +169,10 @@ const Cutoff2024 = () => {
           quota: selectedQuota,
           seatType: selectedSeatType,
           gender: selectedGender,
+          type: selectedType,
         },
       };
-
+console.log(variables);
       // console.log("Submitting filter:", variables);
       fetchCutoffs({ variables });
     }

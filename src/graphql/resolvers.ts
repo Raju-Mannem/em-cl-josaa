@@ -18,7 +18,7 @@ const resolvers = {
         gender: { in: gender },
         type: {in: type}
       };
-
+console.log(JSON.stringify(type));
       const rows = await context.prisma.josaa2025.findMany({
         where: whereClause,
         orderBy: {
