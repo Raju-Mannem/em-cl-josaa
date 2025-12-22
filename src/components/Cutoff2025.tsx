@@ -9,6 +9,7 @@ import { seatOptions } from "../data/seat";
 import { quotaOptions } from "../data/quota";
 import {roundOptions} from "../data/rounds";
 import {genderOptions} from "../data/gender";
+import {typeOptions} from "../data/type";
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import { toast } from "sonner";
@@ -35,6 +36,8 @@ export interface CutoffRow {
   closingRank: string;
   priority: string;
   rounds: Array<number>;
+  type: string;
+  nirf: number;
 }
 
 const Cutoff2024 = () => {
@@ -45,6 +48,7 @@ const Cutoff2024 = () => {
   const [selectedAacademedicProgram, setSelectedAacademedicProgram] = useState<string[]>([]);
   const [selectedRounds, setSelectedRounds] = useState<number[]>([]);
   const [selectedGender, setSelectedGender] = useState<string[]>([]);
+  const [selectedType, setSelectedType] = useState<string[]>([]);
 
   const [stdName, setStdName] = useState<string>("");
   const [stdRank, setStdRank] = useState<string>("");
@@ -162,6 +166,7 @@ const Cutoff2024 = () => {
           maxclosingRank: Number(maxClosingRank),
           rounds: selectedRounds,
           academicProgramName: selectedAacademedicProgram,
+          quota: selectedQuota,
           seatType: selectedSeatType,
           gender: selectedGender,
         },
@@ -744,6 +749,112 @@ const Cutoff2024 = () => {
               </div>
             </details>
           </div>
+          <div className="basis-2/12  mt-2 sm:mt-6">
+            <details className="group relative overflow-hidden rounded border border-gray-300 shadow-sm bg-indigo-50">
+              <summary className="flex items-center justify-between gap-2 p-2 sm:p-3 text-gray-700 transition-colors hover:text-gray-900 [&::-webkit-details-marker]:hidden">
+                <span className="font-medium"> Type </span>
+
+                <span className="transition-transform group-open:-rotate-180">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="size-2 sm:size-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                    />
+                  </svg>
+                </span>
+              </summary>
+
+              <div className="divide-y divide-gray-300 border-t border-gray-300 bg-white">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-gray-700">
+                    {" "}
+                    {selectedType.length}{" "}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="text-gray-700 underline transition-colors hover:text-gray-900"
+                    onClick={() => {
+                      setSelectedType([]);
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <fieldset className="p-3">
+                  <legend className="sr-only">Checkboxes</legend>
+                  <div className="flex flex-col items-start gap-3 max-h-24 overflow-y-auto pr-2">
+                    <label
+                      htmlFor="all"
+                      className="inline-flex items-center gap-2 sm:gap-3"
+                    >
+                      <input
+                        type="checkbox"
+                        className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
+                        checked={
+                          selectedType.length === typeOptions.length
+                        }
+                        onChange={() => {
+                          if (
+                            selectedType.length === typeOptions.length
+                          ) {
+                            // Deselect all
+                            setSelectedType([]);
+                          } else {
+                            // Select all
+                            setSelectedType(
+                              typeOptions.map((opt) => opt.value)
+                            );
+                          }
+                        }}
+                      />
+
+                      <span className="font-medium text-gray-700"> All </span>
+                    </label>
+
+                    {typeOptions.map((opt) => (
+                      <label
+                        htmlFor="Option"
+                        key={opt.value}
+                        className="inline-flex items-center gap-2 sm:gap-3"
+                      >
+                        <input
+                          type="checkbox"
+                          className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
+                          value={opt.value}
+                          checked={selectedType.includes(opt.value)}
+                          onChange={(e) => {
+                            const { value, checked } = e.target;
+                            setSelectedType((prevState) =>
+                              checked
+                                ? [...prevState, value]
+                                : prevState.filter(
+                                    (gender) => gender !== value
+                                  )
+                            );
+                          }}
+                        />
+
+                        <span className="font-medium text-gray-700">
+                          {" "}
+                          {opt.label}{" "}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
+            </details>
+          </div>
           <button
             type="submit"
             className="justify-self-end basis-1/12 sm:ml-4 mt-2 sm:mt-6 bg-indigo-600 text-white font-semibold py-2 px-4 rounded hover:bg-indigo-700 transition"
@@ -865,6 +976,9 @@ const Cutoff2024 = () => {
                       Sno
                     </th>
                     <th className="border border-gray-300 pl-2 py-2 w-lg text-left">
+                      Type
+                    </th>
+                    <th className="border border-gray-300 pl-2 py-2 w-lg text-left">
                       Institute
                     </th>
                     <th className="border border-gray-300 pl-2 py-2 w-lg text-left">
@@ -887,6 +1001,9 @@ const Cutoff2024 = () => {
                     </th>
                     <th className="border border-gray-300 text-center py-2 w-xs">
                       Priority
+                    </th>
+                    <th className="border border-gray-300 text-center py-2 w-xs">
+                      NIRF
                     </th>
                     <th className="border border-gray-300 text-center py-2 w-xs">
                       Rounds
@@ -923,6 +1040,9 @@ const Cutoff2024 = () => {
                           </button>
                         </td>
                         <td className="border border-gray-300 pl-2 py-2">
+                          {row.type}
+                        </td>
+                        <td className="border border-gray-300 pl-2 py-2">
                           {row.institute}
                         </td>
                         <td className="border border-gray-300 pl-2 py-2">
@@ -945,6 +1065,9 @@ const Cutoff2024 = () => {
                         </td>
                         <td className="border border-gray-300 py-2 text-center max-w-min">
                           {row.priority}
+                        </td>
+                        <td className="border border-gray-300 pl-2 py-2">
+                          {row.nirf}
                         </td>
                         <td className="border border-gray-300 py-2 text-center max-w-min">
                           {row.rounds.map((value, index)=>

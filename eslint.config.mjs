@@ -18,6 +18,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "prisma/**",
       "src/graphql/**",
       "src/generated/**",
       "graphql/**",

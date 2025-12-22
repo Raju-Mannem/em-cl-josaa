@@ -13,7 +13,7 @@ const navLinks = [
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <header className="flex justify-between items-center height-10 w-full px-2 sm:px-16 py-4 bg-indigo-300 shadow-xl shadow-blue-500/10 sticky top-0 z-50">
+    <header className="flex justify-between items-center height-10 w-full px-2 sm:px-16 py-4 bg-slate-50 shadow-xl shadow-blue-500/10 sticky top-0 z-50">
       <aside className="flex gap-2 items-center">
         <Image
           src="/campuslogics.webp"
