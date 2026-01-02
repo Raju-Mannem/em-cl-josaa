@@ -1,6 +1,6 @@
 export const typeOptions = [
-    { label: 'IIT', value: 'IIT' },
+    { label: 'IIT', value: 'IIT', },
     { label: 'NIT', value: 'NIT' },
     { label: 'IIIT', value: 'IIIT' },
-    { label: 'CU', value: 'CU' },
+    { label: 'GFTI', value: 'GFTI' },
 ];
