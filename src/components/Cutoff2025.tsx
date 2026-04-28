@@ -1,19 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useLazyQuery } from "@apollo/client/react";
-import {
-  GET_JOSAA_2025,
-} from "../graphql/queries";
+import { GET_JOSAA_2025 } from "../graphql/queries";
 import { programOptions } from "../data/programs";
 import { seatOptions } from "../data/seat";
 import { quotaOptions } from "../data/quota";
-import {roundOptions} from "../data/rounds";
-import {genderOptions} from "../data/gender";
-import {typeOptions} from "../data/type";
+import { roundOptions } from "../data/rounds";
+import { genderOptions } from "../data/gender";
+import { typeOptions } from "../data/type";
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import { toast } from "sonner";
-
 
 // interface josaaCutoff2025sPdfData {
 //   sno: number;
@@ -40,12 +37,18 @@ export interface CutoffRow {
   nirf: number;
 }
 
+type ColumnKey = keyof CutoffRow | "sno";
+
+type TableRow = Partial<Record<ColumnKey, string | number>>;
+
 const Cutoff2024 = () => {
   const [minOpeningRank, setMinOpeningRank] = useState("");
   const [maxClosingRank, setMaxClosingRank] = useState("");
   const [selectedSeatType, setSelectedSeatType] = useState<string[]>([]);
   const [selectedQuota, setSelectedQuota] = useState<string[]>([]);
-  const [selectedAacademedicProgram, setSelectedAacademedicProgram] = useState<string[]>([]);
+  const [selectedAacademedicProgram, setSelectedAacademedicProgram] = useState<
+    string[]
+  >([]);
   const [selectedRounds, setSelectedRounds] = useState<number[]>([]);
   const [selectedGender, setSelectedGender] = useState<string[]>([]);
   const [selectedType, setSelectedType] = useState<string[]>([]);
@@ -55,12 +58,38 @@ const Cutoff2024 = () => {
   const [stdCaste, setStdCaste] = useState<string>("");
   const [result, setResult] = useState<CutoffRow[]>([]);
 
-  const [fetchCutoffs, { data, loading, error }] = useLazyQuery<josaa2025ByRankQueryResult>(
-    GET_JOSAA_2025,
-    { errorPolicy: "all" }
-  );
+  const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>([
+    "sno",
+    "institute",
+    "academicProgramName",
+  ]);
+
+  const allColumns: { label: string; value: ColumnKey }[] = [
+    { label: "S.NO", value: "sno" },
+    { label: "Type", value: "type" },
+    { label: "Institute", value: "institute" },
+    { label: "Academic Program", value: "academicProgramName" },
+    { label: "Quota", value: "quota" },
+    { label: "Seat Type", value: "seatType" },
+    { label: "Gender", value: "gender" },
+    { label: "Opening Rank", value: "openingRank" },
+    { label: "Closing Rank", value: "closingRank" },
+    { label: "Priority", value: "priority" },
+    { label: "NIRF", value: "nirf" },
+    { label: "Rounds", value: "rounds" },
+  ];
+
+  const [fetchCutoffs, { data, loading, error }] =
+    useLazyQuery<josaa2025ByRankQueryResult>(GET_JOSAA_2025, {
+      errorPolicy: "all",
+    });
 
   const handlePDF = () => {
+    if (selectedColumns.length === 0) {
+      toast.error("Please select at least one column");
+      return;
+    }
+
     if (!stdName) {
       toast.error("invalid details");
     } else {
@@ -78,13 +107,21 @@ const Cutoff2024 = () => {
       //   16
       // );
 
-      const tableData = result?.map(
-        (row: CutoffRow, index: number) => ({
-          sno: index + 1,
-          institute: row.institute,
-          academicProgramName: row.academicProgramName,
-        })
-      );
+      const tableData: TableRow[] = result.map((row, index) => {
+        const newRow: TableRow  = {};
+
+        selectedColumns.forEach((col) => {
+          if (col === "sno") {
+            newRow[col] = index + 1;
+          } else if (col === "rounds") {
+            newRow[col] = row.rounds.join(", ");
+          } else {
+            newRow[col] = row[col];
+          }
+        });
+
+        return newRow;
+      });
 
       const firstTableColumn = [
         `Name: ${stdName} `,
@@ -92,11 +129,12 @@ const Cutoff2024 = () => {
         `Caste: ${stdCaste} `,
       ];
 
-      const tableColumn = [
-        { header: "S.NO", dataKey: "sno" },
-        { header: "Institute", dataKey: "institute" },
-        { header: "Academic Progam", dataKey: "academicProgramName" },
-      ];
+      const tableColumn: { header: string; dataKey: ColumnKey }[] = allColumns
+        .filter((col) => selectedColumns.includes(col.value))
+        .map((col) => ({
+          header: col.label,
+          dataKey: col.value,
+        }));
 
       autoTable(doc, {
         head: [firstTableColumn],
@@ -129,7 +167,7 @@ const Cutoff2024 = () => {
         columns: tableColumn,
         body: tableData,
         startY: 34,
-        margin: { top: 10, bottom: 10  },
+        margin: { top: 10, bottom: 10 },
         styles: {
           fontSize: 9,
           cellPadding: 2,
@@ -172,22 +210,20 @@ const Cutoff2024 = () => {
           type: selectedType,
         },
       };
-console.log(variables);
+      console.log(variables);
       // console.log("Submitting filter:", variables);
       fetchCutoffs({ variables });
     }
   };
 
-  
   useEffect(() => {
-    
     if (data?.josaa2025ByRank) {
       setResult(data.josaa2025ByRank);
     }
   }, [data]);
 
   const handleDelete = (sno: number) => {
-    setResult(prevItems => prevItems.filter(item => item.sno !== sno));
+    setResult((prevItems) => prevItems.filter((item) => item.sno !== sno));
   };
 
   return (
@@ -280,18 +316,20 @@ console.log(variables);
                         type="checkbox"
                         className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
                         checked={
-                          selectedAacademedicProgram.length === programOptions.length
+                          selectedAacademedicProgram.length ===
+                          programOptions.length
                         }
                         onChange={() => {
                           if (
-                            selectedAacademedicProgram.length === programOptions.length
+                            selectedAacademedicProgram.length ===
+                            programOptions.length
                           ) {
                             // Deselect all
                             setSelectedAacademedicProgram([]);
                           } else {
                             // Select all
                             setSelectedAacademedicProgram(
-                              programOptions.map((opt) => opt.value)
+                              programOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -310,13 +348,17 @@ console.log(variables);
                           type="checkbox"
                           className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
                           value={opt.value}
-                          checked={selectedAacademedicProgram.includes(opt.value)}
+                          checked={selectedAacademedicProgram.includes(
+                            opt.value,
+                          )}
                           onChange={(e) => {
                             const { value, checked } = e.target;
                             setSelectedAacademedicProgram((prevState) =>
                               checked
                                 ? [...prevState, value]
-                                : prevState.filter((program) => program !== value)
+                                : prevState.filter(
+                                    (program) => program !== value,
+                                  ),
                             );
                           }}
                         />
@@ -384,19 +426,15 @@ console.log(variables);
                       <input
                         type="checkbox"
                         className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
-                        checked={
-                          selectedQuota.length === quotaOptions.length
-                        }
+                        checked={selectedQuota.length === quotaOptions.length}
                         onChange={() => {
-                          if (
-                            selectedQuota.length === quotaOptions.length
-                          ) {
+                          if (selectedQuota.length === quotaOptions.length) {
                             // Deselect all
                             setSelectedQuota([]);
                           } else {
                             // Select all
                             setSelectedQuota(
-                              quotaOptions.map((opt) => opt.value)
+                              quotaOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -421,7 +459,7 @@ console.log(variables);
                             setSelectedQuota((prevState) =>
                               checked
                                 ? [...prevState, value]
-                                : prevState.filter((quota) => quota !== value)
+                                : prevState.filter((quota) => quota !== value),
                             );
                           }}
                         />
@@ -497,7 +535,7 @@ console.log(variables);
                           } else {
                             // Select all
                             setSelectedSeatType(
-                              seatOptions.map((opt) => opt.value)
+                              seatOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -522,7 +560,7 @@ console.log(variables);
                             setSelectedSeatType((prevState) =>
                               checked
                                 ? [...prevState, value]
-                                : prevState.filter((seat) => seat !== value)
+                                : prevState.filter((seat) => seat !== value),
                             );
                           }}
                         />
@@ -589,19 +627,15 @@ console.log(variables);
                       <input
                         type="checkbox"
                         className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
-                        checked={
-                          selectedRounds.length === roundOptions.length
-                        }
+                        checked={selectedRounds.length === roundOptions.length}
                         onChange={() => {
-                          if (
-                            selectedRounds.length === roundOptions.length
-                          ) {
+                          if (selectedRounds.length === roundOptions.length) {
                             // Deselect all
                             setSelectedRounds([]);
                           } else {
                             // Select all
                             setSelectedRounds(
-                              roundOptions.map((opt) => opt.value)
+                              roundOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -627,8 +661,8 @@ console.log(variables);
                               checked
                                 ? [...prevState, Number(value)]
                                 : prevState.filter(
-                                    (round) => round !== Number(value)
-                                  )
+                                    (round) => round !== Number(value),
+                                  ),
                             );
                           }}
                         />
@@ -695,19 +729,15 @@ console.log(variables);
                       <input
                         type="checkbox"
                         className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
-                        checked={
-                          selectedGender.length === genderOptions.length
-                        }
+                        checked={selectedGender.length === genderOptions.length}
                         onChange={() => {
-                          if (
-                            selectedGender.length === genderOptions.length
-                          ) {
+                          if (selectedGender.length === genderOptions.length) {
                             // Deselect all
                             setSelectedGender([]);
                           } else {
                             // Select all
                             setSelectedGender(
-                              genderOptions.map((opt) => opt.value)
+                              genderOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -733,8 +763,8 @@ console.log(variables);
                               checked
                                 ? [...prevState, value]
                                 : prevState.filter(
-                                    (gender) => gender !== value
-                                  )
+                                    (gender) => gender !== value,
+                                  ),
                             );
                           }}
                         />
@@ -775,10 +805,7 @@ console.log(variables);
 
               <div className="divide-y divide-gray-300 border-t border-gray-300 bg-white">
                 <div className="flex items-center justify-between px-3 py-2">
-                  <span className="text-gray-700">
-                    {" "}
-                    {selectedType.length}{" "}
-                  </span>
+                  <span className="text-gray-700"> {selectedType.length} </span>
 
                   <button
                     type="button"
@@ -801,19 +828,15 @@ console.log(variables);
                       <input
                         type="checkbox"
                         className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
-                        checked={
-                          selectedType.length === typeOptions.length
-                        }
+                        checked={selectedType.length === typeOptions.length}
                         onChange={() => {
-                          if (
-                            selectedType.length === typeOptions.length
-                          ) {
+                          if (selectedType.length === typeOptions.length) {
                             // Deselect all
                             setSelectedType([]);
                           } else {
                             // Select all
                             setSelectedType(
-                              typeOptions.map((opt) => opt.value)
+                              typeOptions.map((opt) => opt.value),
                             );
                           }
                         }}
@@ -839,8 +862,8 @@ console.log(variables);
                               checked
                                 ? [...prevState, value]
                                 : prevState.filter(
-                                    (gender) => gender !== value
-                                  )
+                                    (gender) => gender !== value,
+                                  ),
                             );
                           }}
                         />
@@ -917,6 +940,30 @@ console.log(variables);
             </button>
           </span>
         </div>
+        <div className="mt-4 bg-indigo-100 border-1 border-indigo-200 p-4 rounded-lg">
+          <p className="font-semibold mb-2">Select Columns for PDF</p>
+
+          <div className="flex flex-wrap gap-3">
+            {allColumns.map((col) => (
+              <label key={col.value} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedColumns.includes(col.value)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+
+                    setSelectedColumns((prev) =>
+                      checked
+                        ? [...prev, col.value]
+                        : prev.filter((c) => c !== col.value),
+                    );
+                  }}
+                />
+                {col.label}
+              </label>
+            ))}
+          </div>
+        </div>
         <div className="mt-8">
           {loading && (
             <div className="flex justify-center align-center gap-2 text-indigo-500 text-center">
@@ -946,8 +993,7 @@ console.log(variables);
           )}
           {error && (
             <div className="text-red-500 text-center">
-              Error:{" "}
-              {error.message}
+              Error: {error.message}
               {/* {error.graphQLErrors.map(({ message }, i) => (
                 <span key={i}>{message}</span>
               ))} */}
@@ -1012,73 +1058,78 @@ console.log(variables);
                   </tr>
                 </thead>
                 <tbody className="text-neutral-900">
-                  {result.map(
-                    (row: CutoffRow, index: number) => (
-                      <tr
-                        key={row.sno}
-                        className={`hover:bg-stone-50 
+                  {result.map((row: CutoffRow, index: number) => (
+                    <tr
+                      key={row.sno}
+                      className={`hover:bg-stone-50 
                           hover:text-blue-500 h-4 ${
-                          index % 2 != 0 ? "bg-gray-100" : ""
-                        }`}
-                      >
-                         <td className="border border-gray-300 py-2 text-center max-w-min">
-                          <button className="flex justify-center items-center gap-1 w-full h-full" onClick={()=>handleDelete(row.sno)}>
-                            {index + 1}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="size-1 sm:size-3"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                              />
-                            </svg>
-                          </button>
-                        </td>
-                        <td className="border border-gray-300 pl-2 py-2">
-                          {row.type}
-                        </td>
-                        <td className="border border-gray-300 pl-2 py-2">
-                          {row.institute}
-                        </td>
-                        <td className="border border-gray-300 pl-2 py-2">
-                          {row.academicProgramName}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.quota}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.seatType}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.gender}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.openingRank}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.closingRank}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.priority}
-                        </td>
-                        <td className="border border-gray-300 pl-2 py-2">
-                          {row.nirf}
-                        </td>
-                        <td className="border border-gray-300 py-2 text-center max-w-min">
-                          {row.rounds.map((value, index)=>
-                          <span className="px-[6px] py-[2px] bg-blue-400 rounded-full mr-[2px]" key={index}>{value}</span>
-                          )
-                          }
-                        </td>
-                      </tr>
-                    )
-                  )}
+                            index % 2 != 0 ? "bg-gray-100" : ""
+                          }`}
+                    >
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        <button
+                          className="flex justify-center items-center gap-1 w-full h-full"
+                          onClick={() => handleDelete(row.sno)}
+                        >
+                          {index + 1}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-1 sm:size-3"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                            />
+                          </svg>
+                        </button>
+                      </td>
+                      <td className="border border-gray-300 pl-2 py-2">
+                        {row.type}
+                      </td>
+                      <td className="border border-gray-300 pl-2 py-2">
+                        {row.institute}
+                      </td>
+                      <td className="border border-gray-300 pl-2 py-2">
+                        {row.academicProgramName}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.quota}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.seatType}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.gender}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.openingRank}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.closingRank}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.priority}
+                      </td>
+                      <td className="border border-gray-300 pl-2 py-2">
+                        {row.nirf}
+                      </td>
+                      <td className="border border-gray-300 py-2 text-center max-w-min">
+                        {row.rounds.map((value, index) => (
+                          <span
+                            className="px-[6px] py-[2px] bg-blue-400 rounded-full mr-[2px]"
+                            key={index}
+                          >
+                            {value}
+                          </span>
+                        ))}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
