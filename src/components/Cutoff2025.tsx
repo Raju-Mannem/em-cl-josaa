@@ -60,6 +60,7 @@ const Cutoff2024 = () => {
 
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>([
     "sno",
+    "type",
     "institute",
     "academicProgramName",
   ]);
