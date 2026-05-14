@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useLazyQuery } from "@apollo/client/react";
 import { GET_JOSAA_2025 } from "../graphql/queries";
+import { instituteOptions } from "../data/institute";
 import { programOptions } from "../data/programs";
 import { seatOptions } from "../data/seat";
 import { quotaOptions } from "../data/quota";
@@ -46,6 +47,7 @@ const Cutoff2024 = () => {
   const [maxClosingRank, setMaxClosingRank] = useState("");
   const [selectedSeatType, setSelectedSeatType] = useState<string[]>([]);
   const [selectedQuota, setSelectedQuota] = useState<string[]>([]);
+  const [selectedInstituteOption, setSelectedInstituteOption] = useState<string[]>([]);
   const [selectedAacademedicProgram, setSelectedAacademedicProgram] = useState<
     string[]
   >([]);
@@ -209,6 +211,7 @@ const Cutoff2024 = () => {
           seatType: selectedSeatType,
           gender: selectedGender,
           type: selectedType,
+          institutes: selectedInstituteOption,
         },
       };
       console.log(variables);
@@ -263,6 +266,117 @@ const Cutoff2024 = () => {
                 min={0}
               />
             </div>
+          </div>
+          <div className="basis-2/12 mt-2 sm:mt-6">
+            <details className="group relative overflow-hidden rounded border border-gray-300 shadow-sm bg-indigo-50">
+              <summary className="flex items-center justify-between gap-2 p-2 sm:p-3 text-gray-700 transition-colors hover:text-gray-900 [&::-webkit-details-marker]:hidden">
+                <span className="font-medium"> Institute </span>
+
+                <span className="transition-transform group-open:-rotate-180">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="size-2 sm:size-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                    />
+                  </svg>
+                </span>
+              </summary>
+
+              <div className="divide-y divide-gray-300 border-t border-gray-300 bg-white">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-gray-700">
+                    {" "}
+                    {selectedInstituteOption.length}{" "}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="text-gray-700 underline transition-colors hover:text-gray-900"
+                    onClick={() => {
+                      setSelectedInstituteOption([]);
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <fieldset className="p-3">
+                  <legend className="sr-only">Checkboxes</legend>
+
+                  <div className="flex flex-col items-start gap-3 max-h-24 overflow-y-auto pr-2">
+                    <label
+                      htmlFor="all"
+                      className="inline-flex items-center gap-2 sm:gap-3"
+                    >
+                      <input
+                        type="checkbox"
+                        className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
+                        checked={
+                          selectedInstituteOption.length ===
+                          instituteOptions.length
+                        }
+                        onChange={() => {
+                          if (
+                            selectedInstituteOption.length ===
+                            instituteOptions.length
+                          ) {
+                            // Deselect all
+                            setSelectedInstituteOption([]);
+                          } else {
+                            // Select all
+                            setSelectedInstituteOption(
+                              instituteOptions.map((opt) => opt.value),
+                            );
+                          }
+                        }}
+                      />
+
+                      <span className="font-medium text-gray-700"> All </span>
+                    </label>
+
+                    {instituteOptions.map((opt) => (
+                      <label
+                        htmlFor="Option"
+                        key={opt.value}
+                        className="inline-flex items-center gap-2 sm:gap-3"
+                      >
+                        <input
+                          type="checkbox"
+                          className="size-2 sm:size-5 rounded border-gray-300 shadow-sm"
+                          value={opt.value}
+                          checked={selectedInstituteOption.includes(
+                            opt.value,
+                          )}
+                          onChange={(e) => {
+                            const { value, checked } = e.target;
+                            setSelectedInstituteOption((prevState) =>
+                              checked
+                                ? [...prevState, value]
+                                : prevState.filter(
+                                    (ins) => ins !== value,
+                                  ),
+                            );
+                          }}
+                        />
+
+                        <span className="font-medium text-gray-700">
+                          {" "}
+                          {opt.label}{" "}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
+            </details>
           </div>
           <div className="basis-2/12 mt-2 sm:mt-6">
             <details className="group relative overflow-hidden rounded border border-gray-300 shadow-sm bg-indigo-50">

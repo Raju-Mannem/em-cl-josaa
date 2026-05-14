@@ -26,6 +26,7 @@ const typeDefs = `#graphql
         seatType: [String!]!
         gender: [String!]
         type: [String!]
+        institutes: [String!]
     }
 
     type Josaa2025Res {

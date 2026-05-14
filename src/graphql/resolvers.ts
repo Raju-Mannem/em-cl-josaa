@@ -7,10 +7,11 @@ const resolvers = {
       args: { filter: any },
       context: Context
     ) => {
-      const { minOpeningRank, maxclosingRank, rounds, academicProgramName, quota, seatType, gender, type } =
+      const { institutes, minOpeningRank, maxclosingRank, rounds, academicProgramName, quota, seatType, gender, type } =
         args.filter;
 
       const whereClause: any = {
+        ...(institutes && { institute:{in: institutes}}),
         round: { in: rounds },
         academicProgramName: { in: academicProgramName },
         quota: {in: quota},
