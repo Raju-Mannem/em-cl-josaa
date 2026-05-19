@@ -7,7 +7,7 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
-  { name: "Branches", href: "/ccodes" },
+  { name: "colleges", href: "/colleges" },
 ];
 
 const Navbar = () => {
