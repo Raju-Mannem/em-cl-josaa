@@ -17,7 +17,7 @@ const resolvers = {
         quota: {in: quota},
         seatType: { in: seatType },
         gender: { in: gender },
-        type: {in: type}
+        type: {in: type},
       };
 // console.log(JSON.stringify(type));
       const rows = await context.prisma.josaa2025.findMany({

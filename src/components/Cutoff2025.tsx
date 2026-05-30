@@ -240,7 +240,7 @@ const Cutoff2024 = () => {
           className="flex justify-start flex-wrap items-start gap-2"
           onSubmit={handleSubmit}
         >
-          <div className="basis-2/12 flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Minimum Rank
@@ -269,7 +269,6 @@ const Cutoff2024 = () => {
                 min={0}
               />
             </div>
-          </div>
           <SearchableMultiSelect
             title="Institute"
             options={instituteOptions}
@@ -312,6 +311,7 @@ const Cutoff2024 = () => {
             selectedValues={selectedRounds}
             setSelectedValues={setSelectedRounds}
           />
+          </div>
           <button
             type="submit"
             className="justify-self-end basis-1/12 sm:ml-4 mt-2 sm:mt-6 bg-indigo-600 text-white font-semibold py-2 px-4 rounded hover:bg-indigo-700 transition"
